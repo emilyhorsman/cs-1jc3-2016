@@ -16,7 +16,7 @@ import Set
 --main = show <| (initialState, initialTinyData)
 
 
-drawRegister : Int -> RegisterValue -> Shape a
+drawRegister : Int -> a -> Shape b
 drawRegister index register =
     group
         [ square 18
@@ -31,6 +31,13 @@ drawRegister index register =
         ]
 
 
+drawRegisters : Int -> List a -> Shape b
+drawRegisters index registers =
+    List.indexedMap drawRegister registers
+        |> group
+        |> move ( 18 * -4 + 9, toFloat (index + 1) * 18 )
+
+
 drawCPUState : Int -> CPUState -> Shape a
 drawCPUState index cpuState =
     let
@@ -40,15 +47,29 @@ drawCPUState index cpuState =
         registers =
             [ r1, r2, r3, r4, r5, r6, r7, r8 ]
     in
-        List.indexedMap drawRegister registers
-            |> group
-            |> move ( 18 * -4 + 9, toFloat index * 18 )
+        drawRegisters index registers
 
 
 displayCPUStates : List CPUState -> Shape a
 displayCPUStates cpuStateList =
-    List.indexedMap drawCPUState cpuStateList
-        |> group
+    let
+        labels =
+            [ "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8" ]
+
+        drawLabel index label =
+            label
+                |> text
+                |> centered
+                |> filled black
+                |> move ( toFloat index * 18, -4 )
+
+        labelRow =
+            List.indexedMap drawLabel labels
+                |> group
+                |> move ( 18 * -4 + 9, 0 )
+    in
+        (labelRow :: List.indexedMap drawCPUState cpuStateList)
+            |> group
 
 
 view model =
