@@ -16,14 +16,33 @@ import Set
 --main = show <| (initialState, initialTinyData)
 
 
+drawRegister : Int -> RegisterValue -> Shape a
+drawRegister index register =
+    group
+        [ square 18
+            |> outlined (solid 1) black
+            |> move ( toFloat index * 18, 0 )
+        , register
+            |> toString
+            |> text
+            |> centered
+            |> filled black
+            |> move ( toFloat index * 18, -4 )
+        ]
+
+
 drawCPUState : Int -> CPUState -> Shape a
 drawCPUState index cpuState =
-    cpuState
-        |> toString
-        |> text
-        |> centered
-        |> filled brown
-        |> move ( 0, toFloat index * 18 )
+    let
+        (CPUState ( r1, r2, r3, r4, r5, r6, r7, r8 ) _ _ _) =
+            cpuState
+
+        registers =
+            [ r1, r2, r3, r4, r5, r6, r7, r8 ]
+    in
+        List.indexedMap drawRegister registers
+            |> group
+            |> move ( 18 * -4 + 9, toFloat index * 18 )
 
 
 displayCPUStates : List CPUState -> Shape a
