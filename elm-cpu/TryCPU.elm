@@ -16,10 +16,26 @@ import Set
 --main = show <| (initialState, initialTinyData)
 
 
+drawCPUState : Int -> CPUState -> Shape a
+drawCPUState index cpuState =
+    cpuState
+        |> toString
+        |> text
+        |> centered
+        |> filled brown
+        |> move ( 0, toFloat index * 18 )
+
+
+displayCPUStates : List CPUState -> Shape a
+displayCPUStates cpuStateList =
+    List.indexedMap drawCPUState cpuStateList
+        |> group
+
+
 view model =
     collage 500
         500
-        [ model.stateOutput |> move ( 0, 22 )
+        [ model.stateOutput |> displayCPUStates |> move ( 0, 22 )
         , model.instrOutput |> move ( 0, -22 )
         , circle 10
             |> filled
@@ -51,11 +67,7 @@ update NextInstr model =
                 { model
                     | cpu = newCpu
                     , dat = newDat
-                    , stateOutput =
-                        group
-                            [ toString newCpu |> text |> centered |> filled brown
-                            , model.stateOutput |> move ( 0, 18 )
-                            ]
+                    , stateOutput = newCpu :: model.stateOutput
                     , instrOutput =
                         group
                             [ thisInstr |> text |> centered |> filled green
@@ -74,7 +86,7 @@ update NextInstr model =
 init =
     { cpu = initialState
     , dat = initialData
-    , stateOutput = group [ toString initialState |> text |> centered |> filled brown ]
+    , stateOutput = [ initialState ]
     , instrOutput = group []
     , program =
         mkProgram
