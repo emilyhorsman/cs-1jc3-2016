@@ -13,9 +13,6 @@ import Time
 import Set
 
 
---main = show <| (initialState, initialTinyData)
-
-
 drawRegister : Int -> a -> Shape b
 drawRegister index register =
     group
@@ -50,8 +47,8 @@ drawCPUState index cpuState =
         drawRegisters index registers
 
 
-displayCPUStates : List CPUState -> Shape a
-displayCPUStates cpuStateList =
+drawCPUStates : List CPUState -> Shape a
+drawCPUStates cpuStateList =
     let
         labels =
             [ "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8" ]
@@ -68,23 +65,49 @@ displayCPUStates cpuStateList =
                 |> group
                 |> move ( 18 * -4 + 9, 0 )
     in
-        (labelRow :: List.indexedMap drawCPUState cpuStateList)
+        (labelRow :: List.indexedMap drawCPUState (List.take 1 cpuStateList))
             |> group
+
+
+drawInstrArrow instr =
+    let
+        label =
+            if List.length instr == 0 then
+                ""
+            else
+                "→"
+    in
+        label |> text |> filled black
+
+
+drawInstrOutput index label =
+    label |> text |> filled green |> move ( 0, -18 * (toFloat index) )
+
+
+drawInstrOutputs instrs =
+    List.indexedMap drawInstrOutput instrs |> group
+
+
+drawInstrButton cpu =
+    let
+        haltedColour =
+            if isHalted cpu then
+                red
+            else
+                green
+    in
+        circle 10
+            |> filled haltedColour
+            |> notifyTap NextInstr
 
 
 view model =
     collage 500
         500
-        [ model.stateOutput |> displayCPUStates |> move ( 0, 22 )
-        , model.instrOutput |> move ( 0, -22 )
-        , circle 10
-            |> filled
-                (if isHalted model.cpu then
-                    red
-                 else
-                    green
-                )
-            |> notifyTap NextInstr
+        [ model.stateOutput |> drawCPUStates |> move ( -120, 120 )
+        , model.instrOutput |> drawInstrOutputs |> move ( 120, 120 )
+        , model.instrOutput |> drawInstrArrow |> move ( 100, 120 )
+        , model.cpu |> drawInstrButton |> move ( 0, 120 )
         ]
 
 
@@ -108,11 +131,7 @@ update NextInstr model =
                     | cpu = newCpu
                     , dat = newDat
                     , stateOutput = newCpu :: model.stateOutput
-                    , instrOutput =
-                        group
-                            [ thisInstr |> text |> centered |> filled green
-                            , model.instrOutput |> move ( 0, -18 )
-                            ]
+                    , instrOutput = thisInstr :: model.instrOutput
                 }
 
         CPUState regs curr cmp (Just halt) ->
@@ -127,7 +146,7 @@ init =
     { cpu = initialState
     , dat = initialData
     , stateOutput = [ initialState ]
-    , instrOutput = group []
+    , instrOutput = []
     , program =
         mkProgram
             [ LoadImmediate 1 7
