@@ -4,7 +4,6 @@ import Array
 import Bitmap exposing (drawResult, Bitmap)
 import CPU exposing (mkProgram, Instruction(..), RegisterNumber, RegisterValue)
 import RunCPU exposing (runProgram, initialState)
-import Debug exposing (log)
 import Html exposing (Html, pre, text, span)
 import Html.Attributes
 import String
@@ -13,6 +12,59 @@ import String
 create : Int -> Bitmap
 create length =
     Array.repeat (length ^ 2) 0
+
+
+{-| Produce machine instructions to draw a circle given an origin and radius.
+
+    Returns a tuple of instructions and ending instruction address.
+-}
+circle x y radius length startAddress =
+    let
+        ( xReg, yReg, lReg, rReg, cXReg, cYReg, incReg ) =
+            ( 1, 2, 3, 4, 5, 6, 6 )
+
+        instructions =
+            [ LoadImmediate xReg 0
+            , LoadImmediate yReg 0
+            , LoadImmediate lReg length
+            , LoadImmediate rReg radius
+            , Multiply rReg rReg rReg
+              -- (5) Predicate to check if current point is in circle
+            , LoadImmediate cXReg -x
+            , LoadImmediate cYReg -y
+            , Add 7 xReg cXReg
+            , Add 8 yReg cYReg
+            , Multiply 7 7 7
+            , Multiply 8 8 8
+            , Add 7 7 8
+            , LoadImmediate incReg 1
+            , Compare 7 rReg
+              -- If GT, go straight to increment
+            , LoadImmediate 8 (startAddress + 25)
+            , Branch [ GT, EQ ] 8
+            , LoadImmediate 8 radius
+            , LoadImmediate 5 -1
+            , Add 8 8 5
+            , Multiply 8 8 8
+            , Compare 7 8
+            , LoadImmediate 7 (startAddress + 25)
+            , Branch [ LT ] 7
+              -- Plot
+            , Multiply 8 yReg lReg
+            , Store incReg 8 xReg
+              -- Increment
+            , Add xReg xReg incReg
+            , Compare xReg lReg
+            , LoadImmediate 8 (startAddress + 5)
+            , Branch [ LT ] 8
+            , LoadImmediate xReg 0
+            , Add yReg yReg incReg
+              -- Check if finished iterating
+            , Compare yReg lReg
+            , Branch [ LT ] 8
+            ]
+    in
+        ( instructions, startAddress + List.length instructions )
 
 
 {-| Produce machine instructions to draw a horizontal line given a y-coordinate
@@ -167,7 +219,7 @@ instructions =
         commands =
             [ rect 5 20 5 20 64
             , rect 0 63 0 63 64
-            , rect 5 58 40 45 64
+            , circle 30 30 15 64
             ]
 
         ( instructions, _ ) =
