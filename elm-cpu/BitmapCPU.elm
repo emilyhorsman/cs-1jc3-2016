@@ -18,53 +18,75 @@ create length =
 
     Returns a tuple of instructions and ending instruction address.
 -}
-circle x y radius length startAddress =
+circle : RegisterValue -> RegisterValue -> RegisterValue -> RegisterValue -> RegisterNumber -> RegisterNumber -> RegisterNumber -> RegisterNumber -> RegisterNumber -> Int -> ( List Instruction, Int )
+circle x y radius length xReg yReg regC regD regE startAddress =
     let
-        ( xReg, yReg ) =
-            ( 1, 2 )
-
+        -- 1. Keep x and y pointers, starting at 0.
+        -- 2. Compute radius^2.
+        -- 3. Compute x pointer and y pointer minus the origin.
+        -- 4. Square these and sum.
+        -- 5. Go straight to increment (step 11) if outside the circle.
+        -- 6. Compute (radius - 1)^2.
+        -- 7. Compare the previous square from step 4 to this value from step 6.
+        -- 8. Go straight to increment (step 11) if inside this inner circle.
+        -- 9. Load an increment register and length register.
+        -- 10. Compute the address of the beginning of the row we're plotting,
+        --     then store the pixel value (1) at the start of the row plus the
+        --     x value.
+        -- 11. Increment the x value by 1.
+        -- 12. Check if the x value has reached the length of a row, go to step
+        --     2 if it hasn't.
+        -- 13. Cycle x back to 0 and increment y.
+        -- 14. Check if y has reached the length of a column, go to step 2 if
+        --     it hasn't.
         instructions =
             [ LoadImmediate xReg 0
             , LoadImmediate yReg 0
               -- Predicate to check if current point is in circle
-              -- (x - cX)^2 + (y - cY)^2 `compare` radius^2
-            , LoadImmediate 3 radius
-            , Multiply 3 3 3
-            , LoadImmediate 4 -x
-            , LoadImmediate 5 -y
-            , Add 4 xReg 4
-            , Add 5 yReg 5
-            , Multiply 4 4 4
-            , Multiply 5 5 5
-            , Add 4 4 5
-            , Compare 4 3
-              -- If GT, go straight to increment
-            , LoadImmediate 5 (startAddress + 25)
-            , Branch [ GT, EQ ] 5
-            , LoadImmediate 3 radius
-            , LoadImmediate 5 -1
-            , Add 3 3 5
-            , Multiply 3 3 3
-            , Compare 4 3
-            , LoadImmediate 5 (startAddress + 25)
-            , Branch [ LT ] 5
-              -- Plot
-            , LoadImmediate 3 length
-            , LoadImmediate 5 1
-            , Multiply 4 yReg 3
-            , Store 5 4 xReg
-              -- Increment
-            , LoadImmediate 3 length
-            , LoadImmediate 4 1
-            , Add xReg xReg 4
-            , Compare xReg 3
-            , LoadImmediate 5 (startAddress + 2)
-            , Branch [ LT ] 5
+              -- (x - oX)^2 + (y - oY)^2 `compare` radius^2
+            , LoadImmediate regC radius
+            , Multiply regC regC regC
+            , LoadImmediate regD -x
+            , LoadImmediate regE -y
+            , Add regD xReg regD
+            , Add regE yReg regE
+            , Multiply regD regD regD
+            , Multiply regE regE regE
+            , Add regD regD regE
+            , Compare regD regC
+              -- If GT (point is outside circle), go straight to increment
+            , LoadImmediate regE (startAddress + 25)
+            , Branch [ GT, EQ ] regE
+              -- Check if the point is inside a smaller radius circle.
+              -- We don't want to fill the circle, so this ensures we are on
+              -- the outline of the circle.
+            , LoadImmediate regC radius
+              -- Single pixel outline.
+            , LoadImmediate regE -1
+            , Add regC regC regE
+            , Multiply regC regC regC
+            , Compare regD regC
+            , LoadImmediate regE (startAddress + 25)
+            , Branch [ LT ] regE
+              -- Plot.
+            , LoadImmediate regC length
+            , LoadImmediate regE 1
+            , Multiply regD yReg regC
+            , Store regE regD xReg
+              -- Increment.
+            , LoadImmediate regC length
+            , LoadImmediate regD 1
+            , Add xReg xReg regD
+            , Compare xReg regC
+            , LoadImmediate regE (startAddress + 2)
+              -- x isn't at the end yet so we must still be iterating.
+            , Branch [ LT ] regE
+              -- If we did hit the end, cycle x back to start of row.
             , LoadImmediate xReg 0
-            , Add yReg yReg 4
-              -- Check if finished iterating
-            , Compare yReg 3
-            , Branch [ LT ] 5
+            , Add yReg yReg regD
+              -- Check if finished iterating.
+            , Compare yReg regC
+            , Branch [ LT ] regE
             ]
     in
         ( instructions, startAddress + List.length instructions )
@@ -222,7 +244,7 @@ instructions =
         commands =
             [ rect 5 20 5 20 64
             , rect 0 63 0 63 64
-            , circle 30 30 15 64
+            , circle 30 30 15 64 1 2 3 4 5
             ]
 
         ( instructions, _ ) =
