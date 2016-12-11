@@ -1,8 +1,13 @@
-module Bitmap exposing (drawResult)
+module Bitmap exposing (drawResult, Bitmap)
 
 import Array exposing (Array)
 import Svg exposing (Svg)
 import Svg.Attributes
+import Debug exposing (log)
+
+
+type alias Bitmap =
+    Array Int
 
 
 drawPixel : Int -> Int -> Svg a
@@ -23,13 +28,13 @@ drawPixel index pixel =
                 (if pixel == 1 then
                     "black"
                  else
-                    "purple"
+                    "#f8f8f8"
                 )
             ]
             []
 
 
-drawBitmap : Array Int -> Svg a
+drawBitmap : Bitmap -> Svg a
 drawBitmap data =
     Array.indexedMap drawPixel data
         |> Array.toList
@@ -40,6 +45,9 @@ drawBitmap data =
             ]
 
 
-drawResult : ( a, Array Int ) -> Svg a
-drawResult ( _, data ) =
-    drawBitmap data
+drawResult : ( a, Bitmap ) -> Svg a
+drawResult ( state, data ) =
+    let
+        foo = log "state" state
+    in
+        drawBitmap data
