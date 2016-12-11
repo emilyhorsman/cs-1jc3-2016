@@ -20,49 +20,51 @@ create length =
 -}
 circle x y radius length startAddress =
     let
-        ( xReg, yReg, lReg, rReg, cXReg, cYReg, incReg ) =
-            ( 1, 2, 3, 4, 5, 6, 6 )
+        ( xReg, yReg ) =
+            ( 1, 2 )
 
         instructions =
             [ LoadImmediate xReg 0
             , LoadImmediate yReg 0
-            , LoadImmediate lReg length
-            , LoadImmediate rReg radius
-            , Multiply rReg rReg rReg
-              -- (5) Predicate to check if current point is in circle
+              -- Predicate to check if current point is in circle
               -- (x - cX)^2 + (y - cY)^2 `compare` radius^2
-            , LoadImmediate cXReg -x
-            , LoadImmediate cYReg -y
-            , Add 7 xReg cXReg
-            , Add 8 yReg cYReg
-            , Multiply 7 7 7
-            , Multiply 8 8 8
-            , Add 7 7 8
-            , LoadImmediate incReg 1
-            , Compare 7 rReg
+            , LoadImmediate 3 radius
+            , Multiply 3 3 3
+            , LoadImmediate 4 -x
+            , LoadImmediate 5 -y
+            , Add 4 xReg 4
+            , Add 5 yReg 5
+            , Multiply 4 4 4
+            , Multiply 5 5 5
+            , Add 4 4 5
+            , Compare 4 3
               -- If GT, go straight to increment
-            , LoadImmediate 8 (startAddress + 25)
-            , Branch [ GT, EQ ] 8
-            , LoadImmediate rReg radius
+            , LoadImmediate 5 (startAddress + 25)
+            , Branch [ GT, EQ ] 5
+            , LoadImmediate 3 radius
             , LoadImmediate 5 -1
-            , Add rReg rReg 5
-            , Multiply rReg rReg rReg
-            , Compare 7 rReg
-            , LoadImmediate 7 (startAddress + 25)
-            , Branch [ LT ] 7
+            , Add 3 3 5
+            , Multiply 3 3 3
+            , Compare 4 3
+            , LoadImmediate 5 (startAddress + 25)
+            , Branch [ LT ] 5
               -- Plot
-            , Multiply 8 yReg lReg
-            , Store incReg 8 xReg
+            , LoadImmediate 3 length
+            , LoadImmediate 5 1
+            , Multiply 4 yReg 3
+            , Store 5 4 xReg
               -- Increment
-            , Add xReg xReg incReg
-            , Compare xReg lReg
-            , LoadImmediate 8 (startAddress + 3)
-            , Branch [ LT ] 8
+            , LoadImmediate 3 length
+            , LoadImmediate 4 1
+            , Add xReg xReg 4
+            , Compare xReg 3
+            , LoadImmediate 5 (startAddress + 2)
+            , Branch [ LT ] 5
             , LoadImmediate xReg 0
-            , Add yReg yReg incReg
+            , Add yReg yReg 4
               -- Check if finished iterating
-            , Compare yReg lReg
-            , Branch [ LT ] 8
+            , Compare yReg 3
+            , Branch [ LT ] 5
             ]
     in
         ( instructions, startAddress + List.length instructions )
