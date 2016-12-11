@@ -11,7 +11,6 @@ initialState = CPUState  (0,0,0,0,0,0,0,0)     -- all registers start with value
                          0                     -- start execution with the first instruction
                          EQ                    -- result of test starts as equal
                          Nothing
-dataSize = 1024
 initialData  : Array Int
 initialData  = Array.initialize 1024 identity
 
@@ -35,7 +34,7 @@ executeOne instr (cpuState,dat) =
                                     case (getRegisterVal addr1  cpuState
                                          ,getRegisterVal addr2  cpuState
                                          ,getRegisterVal regNum cpuState) of
-                                      (Just addr1',Just addr2',Just value3) -> if 0 <= addr1' + addr2' && addr1' + addr2' < dataSize
+                                      (Just addr1',Just addr2',Just value3) -> if 0 <= addr1' + addr2' && addr1' + addr2' < Array.length dat
                                                                             then (cpuState, Array.set (addr1' + addr2') value3 dat)
                                                                             else (illegalAddress cpuState, dat)
                                       otherwise -> (illegalRegister cpuState,dat)
