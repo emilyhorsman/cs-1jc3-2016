@@ -20,14 +20,14 @@ horizontal y x0 x1 length regA regB regC regD startAddress =
             regD
 
         instructions =
-            [ LoadImmediate regA y
+            [ LoadImmediate regC y
             , LoadImmediate regB length
-            , Multiply regB regA regB  -- length * y
-            , LoadImmediate incReg 1   -- Pixel value and increment
+            , Multiply regC regB regC  -- length * y
             , LoadImmediate regA x0
-            , Add regA regA regB       -- Starting memory address
             , LoadImmediate regB x1
-            , Add regB regA regB       -- Ending memory address
+            , Add regA regA regC       -- Starting memory address
+            , Add regB regB regC       -- Ending memory address
+            , LoadImmediate incReg 1   -- Pixel value and increment
             , LoadImmediate addrReg (startAddress + 9)
             , Store incReg regA 0
             , Add regA regA incReg
@@ -91,6 +91,8 @@ program =
     let
         commands =
             [ rect 5 20 5 20 64
+            , rect 0 63 0 63 64
+            , rect 5 58 40 45 64
             ]
 
         ( instructions, _ ) =
