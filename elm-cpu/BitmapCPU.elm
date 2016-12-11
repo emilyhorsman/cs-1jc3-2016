@@ -4,6 +4,7 @@ import Array
 import Bitmap exposing (drawResult, Bitmap)
 import CPU exposing (mkProgram, Instruction(..))
 import RunCPU exposing (runProgram, initialState)
+import Debug exposing (log)
 
 
 create : Int -> Bitmap
@@ -102,6 +103,7 @@ program =
         , [ Halt ]
         ]
             |> List.foldl (flip (++)) []
+            |> log "Instructions"
             |> mkProgram
 
 main =
