@@ -3,7 +3,6 @@ module Bitmap exposing (drawResult, Bitmap)
 import Array exposing (Array)
 import Svg exposing (Svg)
 import Svg.Attributes
-import Debug exposing (log)
 
 
 type alias Bitmap =
@@ -46,8 +45,5 @@ drawBitmap data =
 
 
 drawResult : ( a, Bitmap ) -> Svg a
-drawResult ( state, data ) =
-    let
-        foo = log "state" state
-    in
-        drawBitmap data
+drawResult ( _, data ) =
+    drawBitmap data
