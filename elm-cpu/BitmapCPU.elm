@@ -30,6 +30,7 @@ circle x y radius length startAddress =
             , LoadImmediate rReg radius
             , Multiply rReg rReg rReg
               -- (5) Predicate to check if current point is in circle
+              -- (x - cX)^2 + (y - cY)^2 `compare` radius^2
             , LoadImmediate cXReg -x
             , LoadImmediate cYReg -y
             , Add 7 xReg cXReg
@@ -42,11 +43,11 @@ circle x y radius length startAddress =
               -- If GT, go straight to increment
             , LoadImmediate 8 (startAddress + 25)
             , Branch [ GT, EQ ] 8
-            , LoadImmediate 8 radius
+            , LoadImmediate rReg radius
             , LoadImmediate 5 -1
-            , Add 8 8 5
-            , Multiply 8 8 8
-            , Compare 7 8
+            , Add rReg rReg 5
+            , Multiply rReg rReg rReg
+            , Compare 7 rReg
             , LoadImmediate 7 (startAddress + 25)
             , Branch [ LT ] 7
               -- Plot
@@ -55,7 +56,7 @@ circle x y radius length startAddress =
               -- Increment
             , Add xReg xReg incReg
             , Compare xReg lReg
-            , LoadImmediate 8 (startAddress + 5)
+            , LoadImmediate 8 (startAddress + 3)
             , Branch [ LT ] 8
             , LoadImmediate xReg 0
             , Add yReg yReg incReg
